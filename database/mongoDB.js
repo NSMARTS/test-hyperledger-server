@@ -22,6 +22,7 @@ function createSchema() {
   const dbModels = {};
   dbModels.User = require('../models/user_schema');
   dbModels.Wallet = require('../models/wallet_schema');
+  dbModels.Order = require('../models/order_schema');
   global.DB_MODELS = dbModels;
 }
 

@@ -1,12 +1,6 @@
-const { Wallets, WalletStore, Wallet } = require("fabric-network");
-//const { Wallet } = require("fabric-network/src/impl/wallet/wallet.js")
-const FabricCAServices = require('fabric-ca-client');
+
 const walletSchema = require("../models/wallet_schema");
-const userSchema = require("../models/wallet_schema");
-const { buildCAClient, enrollAdminMongo, userExist, registerAndEnrollUserMongo } = require("./ca-utils");
-// const { getCCP } = require("./build-ccp");
-const fs = require("fs");
-const mongoose = require('mongoose');
+
 
 const encoding = 'utf8';
 
