@@ -23,7 +23,7 @@
 		}
 	},
 	"channels": {
-        "mychannel": {
+        "orderchannel": {
             "peers": {
                 "peer0.naver.com": {},
                 "peer1.naver.com": {},
@@ -31,7 +31,15 @@
                 "peer1.delivery.com": {},
                 "peer0.restaurant.com": {},
                 "peer1.restaurant.com": {}
-            }
+            },
+            
+      "orderers": [
+        "orderer.naver.com",
+        "orderer2.naver.com",
+        "orderer3.delivery.com",
+        "orderer4.delivery.com",
+        "orderer5.restaurant.com"
+      ]
         }
     },
 	"organizations": {
@@ -41,6 +49,7 @@
 				"path": "../test-hyperledger-bc/test-network/organizations/peerOrganizations/naver.com/admin/msp/keystore/a9cc1dec7757e023e7fbca9968169d6af3add676fca6fb06ab4812d43393268c_sk"
 			},
 			"peers": ["peer0.naver.com","peer1.naver.com"],
+      "orderers": ["orderer.naver.com","orderer2.naver.com"],
 			"signedCert": {
 				"path": "../test-hyperledger-bc/test-network/organizations/peerOrganizations/naver.com/admin/msp/signcerts/cert.pem"
 			},
@@ -52,6 +61,7 @@
 				"path": "../test-hyperledger-bc/test-network/organizations/peerOrganizations/delivery.com/admin/msp/keystore/77c8c7a1aca971e98e7f6b099842eca59a82ca09ad8a8d01d8b51e1bfc341a4c_sk"
 			},
 			"peers": ["peer0.delivery.com","peer1.delivery.com"],
+      "orderers": ["orderer3.delivery.com","orderer4.delivery.com"],
 			"signedCert": {
 				"path": "../test-hyperledger-bc/test-network/organizations/peerOrganizations/delivery.com/admin/msp/signcerts/cert.pem"
 			},
@@ -63,6 +73,7 @@
 				"path": "../test-hyperledger-bc/test-network/organizations/peerOrganizations/restaurant.com/admin/msp/keystore/2393ad08732490f194ce2e092f2ebac3b7908f76d30aed1745299486a2057d81_sk"
 			},
 			"peers": ["peer0.restaurant.com","peer1.restaurant.com"],
+      "orderers": ["orderer5.restaurant.com"],
 			"signedCert": {
 				"path": "../test-hyperledger-bc/test-network/organizations/peerOrganizations/restaurant.com/admin/msp/signcerts/cert.pem"
 			},
@@ -128,6 +139,53 @@
         
                 }
 	},
+  "orderers": {
+    "orderer.naver.com": {
+      "url": "grpcs://localhost:7050",
+      "tlsCACerts": {
+        "path": "../fabric-network/test-network/organizations/peerOrganizations/naver.com/orderers/orderer.naver.com/tls-msp/tlscacerts/tls-0-0-0-0-5054.pem"
+      },
+      "grpcOptions": {
+        "ssl-target-name-override": "orderer.naver.com"
+      }
+    },
+    "orderer2.naver.com": {
+      "url": "grpcs://localhost:7052",
+      "tlsCACerts": {
+        "path": "../fabric-network/test-network/organizations/peerOrganizations/naver.com/orderers/orderer2.naver.com/tls-msp/tlscacerts/tls-0-0-0-0-5054.pem"
+      },
+      "grpcOptions": {
+        "ssl-target-name-override": "orderer2.naver.com"
+      }
+    },
+    "orderer3.delivery.com": {
+      "url": "grpcs://localhost:7056",
+      "tlsCACerts": {
+        "path": "../fabric-network/test-network/organizations/peerOrganizations/delivery.com/orderers/orderer3.delivery.com/tls-msp/tlscacerts/tls-0-0-0-0-5054.pem"
+      },
+      "grpcOptions": {
+        "ssl-target-name-override": "orderer3.delivery.com"
+      }
+    },
+    "orderer4.delivery.com": {
+      "url": "grpcs://localhost:7058",
+      "tlsCACerts": {
+        "path": "../fabric-network/test-network/organizations/peerOrganizations/delivery.com/orderers/orderer4.delivery.com/tls-msp/tlscacerts/tls-0-0-0-0-5054.pem"
+      },
+      "grpcOptions": {
+        "ssl-target-name-override": "orderer4.delivery.com"
+      }
+    },
+    "orderer5.restaurant.com": {
+      "url": "grpcs://localhost:7060",
+      "tlsCACerts": {
+        "path": "../fabric-network/test-network/organizations/peerOrganizations/restaurant.com/orderers/orderer5.restaurant.com/tls-msp/tlscacerts/tls-0-0-0-0-5054.pem"
+      },
+      "grpcOptions": {
+        "ssl-target-name-override": "orderer5.restaurant.com"
+      }
+    }
+  },
   "certificateAuthorities": {
     "ca-naver": {
         "url": "https://localhost:7054",
@@ -158,6 +216,6 @@
     "httpOptions": {
         "verify": false
     }
-}
-}
+  }
+  }
 }

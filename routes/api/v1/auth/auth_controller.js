@@ -12,62 +12,28 @@ exports.signIn = async (req, res) => {
     --------------------------------------------------`);
   const dbModels = global.DB_MODELS;
   console.log(req.body)
-  const { email, password } = req.body;
+  const { email, password, org } = req.body;
 
   try {
     console.log(req.body);
 
-    const user = await dbModels.User.findOne({ email: email });
+    const user = await dbModels.User.findOne({ email: email, org: org });
     console.log(user);
     //만약 등록되지 않은 전화번호라면 401 에러
-    if (!user) return res.status(401).json({ error: true, message: "등록되지 않은 경영자협의회입니다." });
-
-    const buildingInfo = await dbModels.Building.findOne({
-      _id: user.building,
-    });
+    if (!user) return res.status(401).json({ error: true, message: "등록되지 않은 사용자 입니다." });
 
     // console.log("buildingInfo:", buildingInfo);
     const verifiedPassword = await bcrypt.compare(password, user.password);
     if (!verifiedPassword) return res.status(401).json({ error: true, message: "계정 정보가 잘못 되었습니다." });
-    let payload;
-    if (user.isSuperManager) {
-      //토큰 정보
-      payload = {
-        _id: user._id,
-        name: user.name,
-        phone: user.phone,
-        position: user.position,
-        company: user.company,
-        address: user.address,
-        building: user.building,
-        isSuperManager: user.isSuperManager,
-        buildingInfo: buildingInfo,
-        // canvote: true,
-      };
-    } else if (user.isManager) {
-      payload = {
-        _id: user._id,
-        name: user.name,
-        phone: user.phone,
-        position: user.position,
-        building: user.building,
-        isManager: user.isManager,
-        isAdmin: user.isAdmin,
-        buildingInfo: buildingInfo,
-        //   canvote: true,
-      };
-    } else {
-      payload = {
-        _id: user._id,
-        name: user.name,
-        phone: user.phone,
-        building: user.building,
-        company: user.company,
-        address: user.address,
-        buildingInfo: buildingInfo,
-        // canvote: true,
-      };
-    }
+
+    //토큰 정보
+    const payload = {
+      _id: user._id,
+      email: user.email,
+      org: user.org,
+      auth: user.auth,
+    };
+
     console.log(payload);
 
     // jwtOption 지정 <- 한번 로그인 하면 얼마나 오래 유지할 것인지 지정 나는 3일
@@ -80,7 +46,6 @@ exports.signIn = async (req, res) => {
 
     return res.status(200).json({
       token,
-      buildingId: buildingInfo._id,
       message: "로그인 성공",
     });
   } catch (err) {
@@ -187,7 +152,7 @@ exports.signUp = async (req, res) => {
 
   } catch (err) {
     console.log(err);
-    await global.DB_MODELS.User.findByIdAndDelete(newUser._id);
+    await global.DB_MODELS.User.findOneAndDelete({ email: email });
 
     return res.status(500).json({ error: true, message: "Server Error" });
   }
