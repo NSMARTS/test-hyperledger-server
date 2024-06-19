@@ -31,51 +31,63 @@
                 "peer1.delivery.com": {},
                 "peer0.restaurant.com": {},
                 "peer1.restaurant.com": {}
-            },
-            
-      "orderers": [
-        "orderer.naver.com",
-        "orderer2.naver.com",
-        "orderer3.delivery.com",
-        "orderer4.delivery.com",
-        "orderer5.restaurant.com"
-      ]
-        }
+            },     
+            "orderers": [
+              "orderer.naver.com",
+              "orderer2.naver.com",
+              "orderer3.delivery.com",
+              "orderer4.delivery.com",
+              "orderer5.restaurant.com"
+            ]
+        },
+        "contractchannel": {
+          "peers": {
+              "peer0.naver.com": {},
+              "peer1.naver.com": {},
+              "peer0.restaurant.com": {},
+              "peer1.restaurant.com": {}
+          },     
+          "orderers": [
+            "orderer.naver.com",
+            "orderer2.naver.com",
+            "orderer5.restaurant.com"
+          ]
+      }
     },
 	"organizations": {
 		"NaverMSP": {
 			"mspid": "NaverMSP",
 			"adminPrivateKey": {
-				"path": "../fabric-network/test-network/organizations/peerOrganizations/naver.com/admin/msp/keystore/a52dcf66254743b3647d5816a4c7c27241ec02a3402eabab39430b42fb7141c5_sk"
+				"path": "../fabric-network/test-network/organizations/peerOrganizations/naver.com/admin/msp/keystore/5d7756222a1d78f5cd083b3c749a119a9d60fa572fce19f62276196b48b2f334_sk"
 			},
 			"peers": ["peer0.naver.com","peer1.naver.com"],
       "orderers": ["orderer.naver.com","orderer2.naver.com"],
 			"signedCert": {
-				"path": "../test-hyperledger-bc/test-network/organizations/peerOrganizations/naver.com/admin/msp/signcerts/cert.pem"
+				"path": "../fabric-network/test-network/organizations/peerOrganizations/naver.com/admin/msp/signcerts/cert.pem"
 			},
 			"certificateAuthorities": ["ca-naver"]
 		},
     "DeliveryMSP": {
 			"mspid": "DeliveryMSP",
 			"adminPrivateKey": {
-				"path": "../fabric-network/test-network/organizations/peerOrganizations/delivery.com/admin/msp/keystore/37dd0d41f0b5928679e61fc5a35c92570fd6889be2b49c4ccd3310fd7d61dc67_sk"
+				"path": "../fabric-network/test-network/organizations/peerOrganizations/delivery.com/admin/msp/keystore/900283fb810f809610e8715b6807a0be6dce75718ea0637f4d55a894476730b5_sk"
 			},
 			"peers": ["peer0.delivery.com","peer1.delivery.com"],
       "orderers": ["orderer3.delivery.com","orderer4.delivery.com"],
 			"signedCert": {
-				"path": "../test-hyperledger-bc/test-network/organizations/peerOrganizations/delivery.com/admin/msp/signcerts/cert.pem"
+				"path": "../fabric-network/test-network/organizations/peerOrganizations/delivery.com/admin/msp/signcerts/cert.pem"
 			},
 			"certificateAuthorities": ["ca-delivery"]
 		},
     "RestaurantMSP": {
 			"mspid": "RestaurantMSP",
 			"adminPrivateKey": {
-				"path": "../fabric-network/test-network/organizations/peerOrganizations/restaurant.com/admin/msp/keystore/441000974592b7f927c2e81b7f54f9380a8d2a7cd90af20f11c3bb7438ae3bb5_sk"
+				"path": "../fabric-network/test-network/organizations/peerOrganizations/restaurant.com/admin/msp/keystore/26fbf0b4b54f273a00b083c82e2820dbfc4ee69b7471ec747112ac2be64da19f_sk"
 			},
 			"peers": ["peer0.restaurant.com","peer1.restaurant.com"],
       "orderers": ["orderer5.restaurant.com"],
 			"signedCert": {
-				"path": "../test-hyperledger-bc/test-network/organizations/peerOrganizations/restaurant.com/admin/msp/signcerts/cert.pem"
+				"path": "../fabric-network/test-network/organizations/peerOrganizations/restaurant.com/admin/msp/signcerts/cert.pem"
 			},
 			"certificateAuthorities": ["ca-restaurant"]
 		}
@@ -83,7 +95,7 @@
 	"peers": {
 		"peer0.naver.com": {
 			"tlsCACerts": {
-				"path": "../test-hyperledger-bc/test-network/organizations/peerOrganizations/naver.com/peers/peer0.naver.com/tls-msp/tlscacerts/tls-0-0-0-0-5054.pem"
+				"path": "../fabric-network/test-network/organizations/peerOrganizations/naver.com/peers/peer0.naver.com/tls-msp/tlscacerts/tls-0-0-0-0-5054.pem"
 			},
 			"url": "grpcs://localhost:7051",
       "grpcOptions": {
@@ -92,7 +104,7 @@
 		},
 		"peer1.naver.com": {
             "tlsCACerts": {
-                "path": "../test-hyperledger-bc/test-network/organizations/peerOrganizations/naver.com/peers/peer1.naver.com/tls-msp/tlscacerts/tls-0-0-0-0-5054.pem"
+                "path": "../fabric-network/test-network/organizations/peerOrganizations/naver.com/peers/peer1.naver.com/tls-msp/tlscacerts/tls-0-0-0-0-5054.pem"
             },
             "url": "grpcs://localhost:9051",
             "grpcOptions": {
@@ -102,7 +114,7 @@
         },
         "peer0.delivery.com": {
           "tlsCACerts": {
-            "path": "../test-hyperledger-bc/test-network/organizations/peerOrganizations/delivery.com/peers/peer0.delivery.com/tls-msp/tlscacerts/tls-0-0-0-0-5054.pem"
+            "path": "../fabric-network/test-network/organizations/peerOrganizations/delivery.com/peers/peer0.delivery.com/tls-msp/tlscacerts/tls-0-0-0-0-5054.pem"
           },
           "url": "grpcs://localhost:11051",
           "grpcOptions": {
@@ -111,7 +123,7 @@
         },
         "peer1.delivery.com": {
                 "tlsCACerts": {
-                    "path": "../test-hyperledger-bc/test-network/organizations/peerOrganizations/delivery.com/peers/peer1.delivery.com/tls-msp/tlscacerts/tls-0-0-0-0-5054.pem"
+                    "path": "../fabric-network/test-network/organizations/peerOrganizations/delivery.com/peers/peer1.delivery.com/tls-msp/tlscacerts/tls-0-0-0-0-5054.pem"
                 },
                 "url": "grpcs://localhost:13051",
                 "grpcOptions": {
@@ -121,7 +133,7 @@
             },
             "peer0.restaurant.com": {
               "tlsCACerts": {
-                "path": "../test-hyperledger-bc/test-network/organizations/peerOrganizations/restaurant.com/peers/peer0.restaurant.com/tls-msp/tlscacerts/tls-0-0-0-0-5054.pem"
+                "path": "../fabric-network/test-network/organizations/peerOrganizations/restaurant.com/peers/peer0.restaurant.com/tls-msp/tlscacerts/tls-0-0-0-0-5054.pem"
               },
               "url": "grpcs://localhost:15051",
               "grpcOptions": {
@@ -130,7 +142,7 @@
             },
             "peer1.restaurant.com": {
                     "tlsCACerts": {
-                        "path": "../test-hyperledger-bc/test-network/organizations/peerOrganizations/restaurant.com/peers/peer1.restaurant.com/tls-msp/tlscacerts/tls-0-0-0-0-5054.pem"
+                        "path": "../fabric-network/test-network/organizations/peerOrganizations/restaurant.com/peers/peer1.restaurant.com/tls-msp/tlscacerts/tls-0-0-0-0-5054.pem"
                     },
                     "url": "grpcs://localhost:17051",
                     "grpcOptions": {
@@ -191,7 +203,7 @@
         "url": "https://localhost:7054",
         "caName": "ca-naver",
         "tlsCACerts": {
-            "path": "../test-hyperledger-bc/test-network/organizations/fabric-ca/naver/tls-cert.pem"
+            "path": "../fabric-network/test-network/organizations/fabric-ca/naver/tls-cert.pem"
         },
         "httpOptions": {
             "verify": false
@@ -201,7 +213,7 @@
       "url": "https://localhost:9054",
       "caName": "ca-delivery",
       "tlsCACerts": {
-          "path": "../test-hyperledger-bc/test-network/organizations/fabric-ca/delivery/tls-cert.pem"
+          "path": "../fabric-network/test-network/organizations/fabric-ca/delivery/tls-cert.pem"
       },
       "httpOptions": {
           "verify": false
@@ -211,7 +223,7 @@
     "url": "https://localhost:10054",
     "caName": "ca-restaurant",
     "tlsCACerts": {
-        "path": "../test-hyperledger-bc/test-network/organizations/fabric-ca/restaurant/tls-cert.pem"
+        "path": "../fabric-network/test-network/organizations/fabric-ca/restaurant/tls-cert.pem"
     },
     "httpOptions": {
         "verify": false

@@ -9,7 +9,7 @@ const { Wallet, Gateway } = require("fabric-network");
 const { buildCAClient, enrollAdminMongo, buildCCP } = require("../../../../utils/ca-utils");
 const FabricCAServices = require("fabric-ca-client");
 const { default: mongoose } = require("mongoose");
-const { PutObjectCommand, GetObjectCommand } = require("@aws-sdk/client-s3");
+const { PutObjectCommand, GetObjectCommand, DeleteObjectCommand } = require("@aws-sdk/client-s3");
 const { s3Client } = require("../../../../utils/s3Utils");
 const { X509, KJUR, KEYUTIL } = require("jsrsasign");
 
@@ -92,60 +92,61 @@ exports.createContracts = async (req, res) => {
     // 새로운 주문 저장
     await newContract.save({ session });
 
-    // /**
-    // * blockchain 코드 시작 -------------------------------------------
-    // */
-    // const store = new MongoWallet();
-    // const wallet = new Wallet(store);
-    // const userIdentity = await wallet.get(user._id.toString());
+    /**
+    * blockchain 코드 시작 -------------------------------------------
+    */
+    const store = new MongoWallet();
+    const wallet = new Wallet(store);
+    const userIdentity = await wallet.get(_id.toString());
 
-    // let selectedCompany;
-    // switch (user.org) {
-    //   case 'NaverMSP':
-    //     selectedCompany = 'naver';
-    //     break;
-    //   case 'DeliveryMSP':
-    //     selectedCompany = 'delivery';
-    //     break;
-    //   case 'RestaurantMSP':
-    //     selectedCompany = 'restaurant';
-    //     break;
-    //   default:
-    //     break;
-    // }
+    let selectedCompany;
+    switch (org) {
+      case 'NaverMSP':
+        selectedCompany = 'naver';
+        break;
+      case 'RestaurantMSP':
+        selectedCompany = 'restaurant';
+        break;
+      default:
+        break;
+    }
 
 
-    // const ccp = buildCCP(selectedCompany);
-    // console.log(wallet)
-    // console.log(userIdentity)
-    // console.log(ccp)
-    // const gateway = new Gateway();
+    const ccp = buildCCP(selectedCompany);
+    console.log(wallet)
+    console.log(userIdentity)
+    console.log(ccp)
+    const gateway = new Gateway();
 
-    // await gateway.connect(ccp, { wallet, identity: userIdentity, discovery: { enabled: true, asLocalhost: true } });
+    await gateway.connect(ccp, { wallet, identity: userIdentity, discovery: { enabled: true, asLocalhost: true } });
 
-    // // 네트워크 채널 가져오기
-    // const network = await gateway.getNetwork('orderchannel');
+    // 네트워크 채널 가져오기
+    const network = await gateway.getNetwork('contractchannel');
 
-    // // 스마트 컨트랙트 가져오기
-    // const contract = network.getContract('order');
+    // 스마트 컨트랙트 가져오기
+    const contract = network.getContract('contract');
 
-    // try {
-    //   const result = await contract.submitTransaction(
-    //     'CreateOrder', // 스마트 컨트랙트의 함수 이름
-    //     newOrder._id,
-    //     newOrder.writer,
-    //     newOrder.orders,
-    //     newOrder.to,
-    //     newOrder.totalCount,
-    //     newOrder.createdAt.toISOString(),
-    //     newOrder.updatedAt.toISOString(),
-    //   );
-    // } catch (bcError) {
-    //   console.error('Blockchain transaction failed:', bcError);
-    //   throw bcError;
-    // }
+    try {
+      const result = await contract.submitTransaction(
+        'CreateContractInfo', // 스마트 컨트랙트의 함수 이름
+        newContract._id,
+        newContract.title,
+        newContract.writer,
+        newContract.pdfHash,
+        newContract.originalname,
+        newContract.key,
+        newContract.location,
+        newContract.receiverA,
+        newContract.receiverB,
+        newContract.createdAt.toISOString(),
+        newContract.updatedAt.toISOString(),
+      );
+    } catch (bcError) {
+      console.error('Blockchain transaction failed:', bcError);
+      throw bcError;
+    }
 
-    // await gateway.disconnect();
+    await gateway.disconnect();
 
     // 트랜잭션 커밋
     await session.commitTransaction();
@@ -221,13 +222,15 @@ exports.getContractById = async (req, res) => {
   const { _id, email, org } = req.decoded;
   const { id } = req.params;
   console.log(id);
+  const session = await dbModels.Contract.startSession();
 
   try {
     const user = await dbModels.User.findOne({ _id, email, org }).lean();
     if (!user) {
       return res.status(401).json({ error: true, message: "등록되지 않은 사용자 입니다." });
     }
-
+    // 트랜잭션 시작
+    await session.startTransaction();
     const foundContract = await dbModels.Contract
       .findById(id, { location: 0 })
       .populate({
@@ -248,6 +251,57 @@ exports.getContractById = async (req, res) => {
     if (!foundContract) {
       return res.status(404).json({ error: true, message: "계약을 찾을 수 없습니다." });
     }
+
+    /**
+    * blockchain 코드 시작 -------------------------------------------
+    */
+    const store = new MongoWallet();
+    const wallet = new Wallet(store);
+    const userIdentity = await wallet.get(user._id.toString());
+
+    let selectedCompany;
+    switch (org) {
+      case 'NaverMSP':
+        selectedCompany = 'naver';
+        break;
+      case 'RestaurantMSP':
+        selectedCompany = 'restaurant';
+        break;
+      default:
+        break;
+    }
+
+
+    const ccp = buildCCP(selectedCompany);
+    const gateway = new Gateway();
+
+    await gateway.connect(ccp, { wallet, identity: userIdentity, discovery: { enabled: true, asLocalhost: true } });
+
+    // 네트워크 채널 가져오기
+    const network = await gateway.getNetwork('contractchannel');
+
+    // 스마트 컨트랙트 가져오기
+    const contract = network.getContract('contract');
+
+    try {
+      const result = await contract.submitTransaction(
+        'ReadContractById', // 스마트 컨트랙트의 함수 이름
+        id
+      );
+    } catch (bcError) {
+      console.error('Blockchain transaction failed:', bcError);
+      throw bcError;
+    }
+
+    await gateway.disconnect();
+
+    // 트랜잭션 커밋
+    await session.commitTransaction();
+    session.endSession();
+
+    /**
+    * blockchain 코드 끝 -------------------------------------------
+    */
 
 
     res.status(200).json({ contract: foundContract });
@@ -308,70 +362,67 @@ exports.getContracts = async (req, res) => {
       });
     }
 
-    // /**
-    //   * blockchain 코드 시작-------------------------------------------
-    //   */
-    // const store = new MongoWallet();
-    // const wallet = new Wallet(store);
-    // const userIdentity = await wallet.get(user._id.toString());
+    /**
+      * blockchain 코드 시작-------------------------------------------
+      */
+    const store = new MongoWallet();
+    const wallet = new Wallet(store);
+    const userIdentity = await wallet.get(user._id.toString());
 
-    // let selectedCompany;
-    // switch (user.org) {
-    //   case 'NaverMSP':
-    //     selectedCompany = 'naver';
-    //     break;
-    //   case 'DeliveryMSP':
-    //     selectedCompany = 'delivery';
-    //     break;
-    //   case 'RestaurantMSP':
-    //     selectedCompany = 'restaurant';
-    //     break;
-    //   default:
-    //     break;
-    // }
+    let selectedCompany;
+    switch (user.org) {
+      case 'NaverMSP':
+        selectedCompany = 'naver';
+        break;
+      case 'RestaurantMSP':
+        selectedCompany = 'restaurant';
+        break;
+      default:
+        break;
+    }
 
-    // const ccp = buildCCP(selectedCompany);
-    // const gateway = new Gateway();
+    const ccp = buildCCP(selectedCompany);
+    const gateway = new Gateway();
 
-    // await gateway.connect(ccp, { wallet, identity: userIdentity, discovery: { enabled: true, asLocalhost: true } });
+    await gateway.connect(ccp, { wallet, identity: userIdentity, discovery: { enabled: true, asLocalhost: true } });
 
-    // // 네트워크 채널 가져오기
-    // const network = await gateway.getNetwork('orderchannel');
+    // 네트워크 채널 가져오기
+    const network = await gateway.getNetwork('contractchannel');
 
-    // // 스마트 컨트랙트 가져오기
-    // const contract = network.getContract('order');
+    // 스마트 컨트랙트 가져오기
+    const contract = network.getContract('contract');
 
-    // // 블록체인에서 데이터를 쿼리할땐 크게 2가지 방식있다.
-    // // evaluateTransaction
-    // // submitTransaction
-    // // evaluateTransaction 는 데이터를 빠르게 couchDB에서
-    // // 가져오지만, 다른 피어들과 데이터를 비교하지 않는다.
-    // // 그래서 오염이 있어도 걸러내지 못한다.
-    // // submitTransaction로 하면 느리게 데이터를 불러오지만
-    // // 다른 노드들과 데이터를 비교를 통해 오염 유무를 알 수 있다.
-    // // 선택에 따라 어떻게 할지 정하면 됨.
+    // 블록체인에서 데이터를 쿼리할땐 크게 2가지 방식있다.
+    // evaluateTransaction
+    // submitTransaction
+    // evaluateTransaction 는 데이터를 빠르게 couchDB에서
+    // 가져오지만, 다른 피어들과 데이터를 비교하지 않는다.
+    // 그래서 오염이 있어도 걸러내지 못한다.
+    // submitTransaction로 하면 느리게 데이터를 불러오지만
+    // 다른 노드들과 데이터를 비교를 통해 오염 유무를 알 수 있다.
+    // 선택에 따라 어떻게 할지 정하면 됨.
 
-    // // await contract.evaluateTransaction(
-    // //   'GetAllOrders', // 스마트 컨트랙트의 함수 이름
-    // // );
+    // await contract.evaluateTransaction(
+    //   'GetAllOrders', // 스마트 컨트랙트의 함수 이름
+    // );
 
 
-    // try {
-    //   const resultBuffer = await contract.submitTransaction(
-    //     'GetAllOrders', // 스마트 컨트랙트의 함수 이름
-    //   );
-    //   const resultString = resultBuffer.toString('utf8');
-    //   const resultJson = JSON.parse(resultString);
-    //   console.log(resultJson)
-    // } catch (bcError) {
-    //   console.error('Blockchain transaction failed:', bcError);
-    //   return res.status(500).json({
-    //     error: true,
-    //     message: 'Blockchain transaction failed',
-    //     details: bcError.message,
-    //   });
-    // }
-    // await gateway.disconnect();
+    try {
+      const resultBuffer = await contract.submitTransaction(
+        'GetAllContractInfos', // 스마트 컨트랙트의 함수 이름
+      );
+      const resultString = resultBuffer.toString('utf8');
+      const resultJson = JSON.parse(resultString);
+      console.log(resultJson)
+    } catch (bcError) {
+      console.error('Blockchain transaction failed:', bcError);
+      return res.status(500).json({
+        error: true,
+        message: 'Blockchain transaction failed',
+        details: bcError.message,
+      });
+    }
+    await gateway.disconnect();
 
     /**
       * blockchain 코드 끝-------------------------------------------
@@ -382,7 +433,7 @@ exports.getContracts = async (req, res) => {
       message: "주문 찾기 성공",
     });
   } catch (err) {
-
+    console.log(err)
     return res.status(500).json({ error: true, message: "Server Error" });
   }
 };
@@ -397,7 +448,7 @@ exports.signContracts = async (req, res) => {
   const dbModels = global.DB_MODELS;
   const { _id, email, org } = req.decoded;
   const { id } = req.params
-  const body = req.body
+  const { receiver, ...body } = req.body;
   console.log(body)
   console.log(id)
 
@@ -408,12 +459,13 @@ exports.signContracts = async (req, res) => {
     //만약 등록되지 않은 전화번호라면 401 에러
     if (!user) return res.status(401).json({ error: true, message: "등록되지 않은 사용자 입니다." });
 
-    if (!(body.receiver === 'a' || body.receiver === 'b')) {
+    if (!(receiver === 'a' || receiver === 'b')) {
       return res.status(401).json({ error: true, message: "잘못된 등록 양식 입니다." });
     }
+    await session.startTransaction();
 
-    const receiverField = body.receiver === 'a' ? 'receiverA' : 'receiverB';
-    const statusField = body.receiver === 'a' ? 'statusA' : 'statusB';
+    const receiverField = receiver === 'a' ? 'receiverA' : 'receiverB';
+    const statusField = receiver === 'a' ? 'statusA' : 'statusB';
 
     const foundContract = await dbModels.Contract.findOne({ _id: id, [receiverField]: _id }).lean();
 
@@ -442,12 +494,12 @@ exports.signContracts = async (req, res) => {
     console.log("Signature: " + sigValueBase64);
 
 
-    body[body.receiver === 'a' ? 'signA' : 'signB'] = sigValueBase64;
-    delete body.receiver;
+    body[receiver === 'a' ? 'signA' : 'signB'] = sigValueBase64;
 
     // 트랜잭션 시작
     await session.startTransaction();
     const updatedContract = await dbModels.Contract.findByIdAndUpdate(id, body, { new: true })
+    console.log(receiver)
     console.log(updatedContract)
 
     if (!updatedContract) {
@@ -461,59 +513,54 @@ exports.signContracts = async (req, res) => {
     /**
   * blockchain 코드 시작-------------------------------------------
   */
-    // const store = new MongoWallet();
-    // const wallet = new Wallet(store);
-    // const userIdentity = await wallet.get(user._id.toString());
 
-    // let selectedCompany;
-    // switch (user.org) {
-    //   case 'NaverMSP':
-    //     selectedCompany = 'naver';
-    //     break;
-    //   case 'DeliveryMSP':
-    //     selectedCompany = 'delivery';
-    //     break;
-    //   case 'RestaurantMSP':
-    //     selectedCompany = 'restaurant';
-    //     break;
-    //   default:
-    //     break;
-    // }
 
-    // const ccp = buildCCP(selectedCompany);
-    // const gateway = new Gateway();
+    let selectedCompany;
+    switch (user.org) {
+      case 'NaverMSP':
+        selectedCompany = 'naver';
+        break;
+      case 'RestaurantMSP':
+        selectedCompany = 'restaurant';
+        break;
+      default:
+        break;
+    }
 
-    // await gateway.connect(ccp, { wallet, identity: userIdentity, discovery: { enabled: true, asLocalhost: true } });
+    const ccp = buildCCP(selectedCompany);
+    const gateway = new Gateway();
+
+    await gateway.connect(ccp, { wallet, identity: userIdentity, discovery: { enabled: true, asLocalhost: true } });
 
     // // 네트워크 채널 가져오기
-    // const network = await gateway.getNetwork('orderchannel');
+    const network = await gateway.getNetwork('contractchannel');
 
     // // 스마트 컨트랙트 가져오기
-    // const contract = network.getContract('order');
+    const contract = network.getContract('contract');
 
-    // try {
-    //   const resultBuffer = await contract.submitTransaction(
-    //     'UpdateOrder', // 스마트 컨트랙트의 함수 이름
-    //     updatedOrder._id,
-    //     updatedOrder.writer,
-    //     updatedOrder.orders,
-    //     updatedOrder.to,
-    //     updatedOrder.totalCount,
-    //     updatedOrder.createdAt.toISOString(),
-    //     updatedOrder.updatedAt.toISOString(),
-    //   );
-    //   const resultString = resultBuffer.toString('utf8');
-    //   const resultJson = JSON.parse(resultString);
-    //   console.log(resultJson)
-    // } catch (bcError) {
-    //   console.error('Blockchain transaction failed:', bcError);
-    //   return res.status(500).json({
-    //     error: true,
-    //     message: 'Blockchain transaction failed',
-    //     details: bcError.message,
-    //   });
-    // }
-    // await gateway.disconnect();
+    try {
+      const resultBuffer = await contract.submitTransaction(
+        'SignContractInfo', // 스마트 컨트랙트의 함수 이름
+        updatedContract._id,
+        receiver,
+        updatedContract[statusField],
+        updatedContract[receiver === 'a' ? 'signA' : 'signB'],
+        updatedContract[receiver === 'a' ? 'signPointerA' : 'signPointerB'],
+        updatedContract.createdAt.toISOString(),
+        updatedContract.updatedAt.toISOString(),
+      );
+      const resultString = resultBuffer.toString('utf8');
+      const resultJson = JSON.parse(resultString);
+      console.log(resultJson)
+    } catch (bcError) {
+      console.error('Blockchain transaction failed:', bcError);
+      return res.status(500).json({
+        error: true,
+        message: 'Blockchain transaction failed',
+        details: bcError.message,
+      });
+    }
+    await gateway.disconnect();
 
     /**
       * blockchain 코드 끝-------------------------------------------
@@ -564,6 +611,7 @@ exports.verifyContracts = async (req, res) => {
 
     // 수신자 필드 결정 ('receiverA' 또는 'receiverB')
     const receiverField = receiver === 'a' ? 'receiverA' : 'receiverB';
+    await session.startTransaction();
 
     // 계약이 존재하는지 확인 및 수신자가 맞는지 확인
     const foundContract = await dbModels.Contract.findOne({ _id: id, [receiverField]: _id }).lean();
@@ -583,13 +631,6 @@ exports.verifyContracts = async (req, res) => {
       return res.status(400).json({ message: 'Invalid Document: The uploaded file does not match the expected contract.' });
     }
 
-    // 수신자의 서명 상태 필드 결정 ('statusA' 또는 'statusB')
-    const statusField = receiver === 'a' ? 'statusA' : 'statusB';
-    if (foundContract[statusField] !== "signed") {
-      await unlink(file.path); // 파일 삭제
-      return res.status(200).json({ message: 'Validation Complete: Contract unsigned and pending. Please sign to finalize.' });
-    }
-
     // 몽고디비에 저장된 지갑에서 인증서 불러오기
     const store = new MongoWallet();
     const wallet = new Wallet(store);
@@ -597,6 +638,40 @@ exports.verifyContracts = async (req, res) => {
     if (!userIdentity) {
       console.log(`An identity for the user ${req.decoded._id} does not exist in the wallet`);
       return res.status(500).send({ message: `An identity for the user does not exist in the wallet` });
+    }
+
+    let selectedCompany;
+    switch (user.org) {
+      case 'NaverMSP':
+        selectedCompany = 'naver';
+        break;
+      case 'RestaurantMSP':
+        selectedCompany = 'restaurant';
+        break;
+      default:
+        break;
+    }
+
+    const ccp = buildCCP(selectedCompany);
+    const gateway = new Gateway();
+
+    await gateway.connect(ccp, { wallet, identity: userIdentity, discovery: { enabled: true, asLocalhost: true } });
+
+    // Get the network channel that the smart contract is deployed to.
+    const network = await gateway.getNetwork('contractchannel');
+    const contract = network.getContract('contract');
+    const resultBuffer = await contract.submitTransaction(
+      'ReadContractById',
+      id
+    );
+
+    const jsonResult = JSON.parse(resultBuffer);
+
+    // 수신자의 서명 상태 필드 결정 ('statusA' 또는 'statusB')
+    const statusField = receiver === 'a' ? 'statusA' : 'statusB';
+    if (foundContract[statusField] !== "signed") {
+      await unlink(file.path); // 파일 삭제
+      return res.status(200).json({ message: 'Validation Complete: Contract unsigned and pending. Please sign to finalize.' });
     }
 
     // 사용자 공개 키 및 인증서 정보 읽기
@@ -617,7 +692,13 @@ exports.verifyContracts = async (req, res) => {
     const signature = new KJUR.crypto.Signature({ "alg": "SHA256withECDSA" });
     signature.init(publicKey);
     signature.updateHex(fileHash);
-    const verifyResult = signature.verify(foundContract[statusField]);
+    const getBackSigValueHex = Buffer.from(jsonResult[0]?.[statusField], 'base64').toString('hex');
+
+    const verifyResult = signature.verify(getBackSigValueHex)
+
+    // 블록체인 미사용시 사용코드
+    // const verifyResult = signature.verify(foundContract[statusField]);
+
     if (!verifyResult) {
       await unlink(file.path); // 파일 삭제
       return res.status(400).json({ message: 'Verification Failed: The document you have uploaded does not match the expected contract or certificate.' });
@@ -645,8 +726,6 @@ const getCaCertPath = (org) => {
   switch (org) {
     case 'NaverMSP':
       return process.env.NAVER_CA_CERT_PATH;
-    case 'DeliveryMSP':
-      return process.env.DELIVERY_CA_CERT_PATH;
     case 'RestaurantMSP':
       return process.env.RESTAURANT_CA_CERT_PATH;
     default:
@@ -677,9 +756,9 @@ exports.updateOrder = async (req, res) => {
 
     // 트랜잭션 시작
     await session.startTransaction();
-    const updatedOrder = await dbModels.Order.findByIdAndUpdate(id, { ...req.body }, { new: true })
+    const updatedContract = await dbModels.Contract.findByIdAndUpdate(id, { ...req.body }, { new: true })
 
-    if (!updatedOrder) {
+    if (!updatedContract) {
       return res.status(404).json({
         message: "주문 수정 실패",
       });
@@ -697,9 +776,6 @@ exports.updateOrder = async (req, res) => {
       case 'NaverMSP':
         selectedCompany = 'naver';
         break;
-      case 'DeliveryMSP':
-        selectedCompany = 'delivery';
-        break;
       case 'RestaurantMSP':
         selectedCompany = 'restaurant';
         break;
@@ -713,21 +789,25 @@ exports.updateOrder = async (req, res) => {
     await gateway.connect(ccp, { wallet, identity: userIdentity, discovery: { enabled: true, asLocalhost: true } });
 
     // 네트워크 채널 가져오기
-    const network = await gateway.getNetwork('orderchannel');
+    const network = await gateway.getNetwork('contractchannel');
 
     // 스마트 컨트랙트 가져오기
-    const contract = network.getContract('order');
+    const contract = network.getContract('contract');
 
     try {
       const resultBuffer = await contract.submitTransaction(
-        'UpdateOrder', // 스마트 컨트랙트의 함수 이름
-        updatedOrder._id,
-        updatedOrder.writer,
-        updatedOrder.orders,
-        updatedOrder.to,
-        updatedOrder.totalCount,
-        updatedOrder.createdAt.toISOString(),
-        updatedOrder.updatedAt.toISOString(),
+        'UpdateContractInfo', // 스마트 컨트랙트의 함수 이름
+        updatedContract._id,
+        updatedContract.title,
+        updatedContract.writer,
+        updatedContract.pdfHash,
+        updatedContract.originalname,
+        updatedContract.key,
+        updatedContract.location,
+        updatedContract.receiverA,
+        updatedContract.receiverB,
+        updatedContract.createdAt.toISOString(),
+        updatedContract.updatedAt.toISOString(),
       );
       const resultString = resultBuffer.toString('utf8');
       const resultJson = JSON.parse(resultString);
@@ -766,10 +846,10 @@ exports.updateOrder = async (req, res) => {
 
 
 
-exports.deleteOrder = async (req, res) => {
+exports.deleteContract = async (req, res) => {
   console.log(`
     --------------------------------------------------
-    router.delete("/orders/:id", ordersController.deleteOrder);
+    router.delete("/contract/:id", ordersController.deleteContract);
     --------------------------------------------------`);
   const dbModels = global.DB_MODELS;
   const { _id, email, org } = req.decoded;
@@ -783,10 +863,10 @@ exports.deleteOrder = async (req, res) => {
     if (!user) return res.status(401).json({ error: true, message: "등록되지 않은 사용자 입니다." });
     // 트랜잭션 시작
     await session.startTransaction();
-    const deletedOrder = await dbModels.Order.findByIdAndDelete(id)
+    const deletedContract = await dbModels.Contract.findByIdAndDelete(id)
 
 
-    if (!deletedOrder) {
+    if (!deletedContract) {
       return res.status(404).json({
         message: "주문 삭제 실패",
       });
@@ -804,9 +884,6 @@ exports.deleteOrder = async (req, res) => {
       case 'NaverMSP':
         selectedCompany = 'naver';
         break;
-      case 'DeliveryMSP':
-        selectedCompany = 'delivery';
-        break;
       case 'RestaurantMSP':
         selectedCompany = 'restaurant';
         break;
@@ -820,14 +897,14 @@ exports.deleteOrder = async (req, res) => {
     await gateway.connect(ccp, { wallet, identity: userIdentity, discovery: { enabled: true, asLocalhost: true } });
 
     // 네트워크 채널 가져오기
-    const network = await gateway.getNetwork('orderchannel');
+    const network = await gateway.getNetwork('contractchannel');
 
     // 스마트 컨트랙트 가져오기
-    const contract = network.getContract('order');
+    const contract = network.getContract('contract');
 
     try {
       const resultBuffer = await contract.submitTransaction(
-        'DeleteOrder', // 스마트 컨트랙트의 함수 이름
+        'DeleteContractInfo', // 스마트 컨트랙트의 함수 이름
         id,
       );
       const resultString = resultBuffer.toString('utf8');
@@ -846,6 +923,13 @@ exports.deleteOrder = async (req, res) => {
     /**
       * blockchain 코드 끝-------------------------------------------
       */
+
+    const command = new DeleteObjectCommand({
+      Bucket: process.env.AWS_BUCKET,
+      Key: contract.key, // 업로드된 파일 경로
+    });
+
+    const response = await s3Client.send(command);
 
 
     // 트랜잭션 커밋
