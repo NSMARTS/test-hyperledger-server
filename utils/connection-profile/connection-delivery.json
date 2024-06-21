@@ -143,7 +143,7 @@
     "orderer.naver.com": {
       "url": "grpcs://localhost:7050",
       "tlsCACerts": {
-        "path": "../fabric-network/test-network/organizations/peerOrganizations/naver.com/orderers/orderer.naver.com/tls-msp/tlscacerts/tls-0-0-0-0-5054.pem"
+        "path": "../test-hyperledger-bc/test-network/organizations/peerOrganizations/naver.com/orderers/orderer.naver.com/tls-msp/tlscacerts/tls-0-0-0-0-5054.pem"
       },
       "grpcOptions": {
         "ssl-target-name-override": "orderer.naver.com"
@@ -152,7 +152,7 @@
     "orderer2.naver.com": {
       "url": "grpcs://localhost:7052",
       "tlsCACerts": {
-        "path": "../fabric-network/test-network/organizations/peerOrganizations/naver.com/orderers/orderer2.naver.com/tls-msp/tlscacerts/tls-0-0-0-0-5054.pem"
+        "path": "../test-hyperledger-bc/test-network/organizations/peerOrganizations/naver.com/orderers/orderer2.naver.com/tls-msp/tlscacerts/tls-0-0-0-0-5054.pem"
       },
       "grpcOptions": {
         "ssl-target-name-override": "orderer2.naver.com"
@@ -161,7 +161,7 @@
     "orderer3.delivery.com": {
       "url": "grpcs://localhost:7056",
       "tlsCACerts": {
-        "path": "../fabric-network/test-network/organizations/peerOrganizations/delivery.com/orderers/orderer3.delivery.com/tls-msp/tlscacerts/tls-0-0-0-0-5054.pem"
+        "path": "../test-hyperledger-bc/test-network/organizations/peerOrganizations/delivery.com/orderers/orderer3.delivery.com/tls-msp/tlscacerts/tls-0-0-0-0-5054.pem"
       },
       "grpcOptions": {
         "ssl-target-name-override": "orderer3.delivery.com"
@@ -170,7 +170,7 @@
     "orderer4.delivery.com": {
       "url": "grpcs://localhost:7058",
       "tlsCACerts": {
-        "path": "../fabric-network/test-network/organizations/peerOrganizations/delivery.com/orderers/orderer4.delivery.com/tls-msp/tlscacerts/tls-0-0-0-0-5054.pem"
+        "path": "../test-hyperledger-bc/test-network/organizations/peerOrganizations/delivery.com/orderers/orderer4.delivery.com/tls-msp/tlscacerts/tls-0-0-0-0-5054.pem"
       },
       "grpcOptions": {
         "ssl-target-name-override": "orderer4.delivery.com"
@@ -179,7 +179,7 @@
     "orderer5.restaurant.com": {
       "url": "grpcs://localhost:7060",
       "tlsCACerts": {
-        "path": "../fabric-network/test-network/organizations/peerOrganizations/restaurant.com/orderers/orderer5.restaurant.com/tls-msp/tlscacerts/tls-0-0-0-0-5054.pem"
+        "path": "../test-hyperledger-bc/test-network/organizations/peerOrganizations/restaurant.com/orderers/orderer5.restaurant.com/tls-msp/tlscacerts/tls-0-0-0-0-5054.pem"
       },
       "grpcOptions": {
         "ssl-target-name-override": "orderer5.restaurant.com"
