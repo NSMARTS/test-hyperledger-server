@@ -11,6 +11,6 @@ router.post("/", uploadContract.single('file'), contractsController.createContra
 router.patch("/sign/:id", contractsController.signContracts);
 router.post("/verify/:id", uploadContract.single('file'), contractsController.verifyContracts);
 // router.patch("/:id", contractsController.updateContracts);
-// router.delete("/:id", contractsController.deleteContracts);
+router.delete("/:id", contractsController.deleteContract);
 
 module.exports = router;
