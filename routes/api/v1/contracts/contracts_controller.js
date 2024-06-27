@@ -496,8 +496,6 @@ exports.signContracts = async (req, res) => {
 
     body[receiver === 'a' ? 'signA' : 'signB'] = sigValueBase64;
 
-    // 트랜잭션 시작
-    await session.startTransaction();
     const updatedContract = await dbModels.Contract.findByIdAndUpdate(id, body, { new: true })
     console.log(receiver)
     console.log(updatedContract)
@@ -615,6 +613,10 @@ exports.verifyContracts = async (req, res) => {
 
     // 계약이 존재하는지 확인 및 수신자가 맞는지 확인
     const foundContract = await dbModels.Contract.findOne({ _id: id, [receiverField]: _id }).lean();
+    console.log(receiverField)
+    console.log(_id)
+    console.log(foundContract)
+
     if (!foundContract) {
       await unlink(file.path); // 파일 삭제
       return res.status(404).json({ message: 'Contract was not found!' });
@@ -692,7 +694,7 @@ exports.verifyContracts = async (req, res) => {
     const signature = new KJUR.crypto.Signature({ "alg": "SHA256withECDSA" });
     signature.init(publicKey);
     signature.updateHex(fileHash);
-    const getBackSigValueHex = Buffer.from(jsonResult[0]?.[statusField], 'base64').toString('hex');
+    const getBackSigValueHex = Buffer.from(jsonResult[0]?.[receiver === 'a' ? 'signA' : 'signB'], 'base64').toString('hex');
 
     const verifyResult = signature.verify(getBackSigValueHex)
 
@@ -925,7 +927,7 @@ exports.deleteContract = async (req, res) => {
       */
 
     const command = new DeleteObjectCommand({
-      Bucket: process.env.AWS_BUCKET,
+      Bucket: process.env.AWS_S3_BUCKET,
       Key: contract.key, // 업로드된 파일 경로
     });
 

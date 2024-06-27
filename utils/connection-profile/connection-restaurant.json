@@ -58,7 +58,7 @@
 		"NaverMSP": {
 			"mspid": "NaverMSP",
 			"adminPrivateKey": {
-				"path": "../fabric-network/test-network/organizations/peerOrganizations/naver.com/admin/msp/keystore/5d7756222a1d78f5cd083b3c749a119a9d60fa572fce19f62276196b48b2f334_sk"
+				"path": "../fabric-network/test-network/organizations/peerOrganizations/naver.com/admin/msp/keystore/f1571ce1afd1052cd759eab846305328f3698da8d700981afb36c59bd29fec71_sk"
 			},
 			"peers": ["peer0.naver.com","peer1.naver.com"],
       "orderers": ["orderer.naver.com","orderer2.naver.com"],
@@ -70,7 +70,7 @@
     "DeliveryMSP": {
 			"mspid": "DeliveryMSP",
 			"adminPrivateKey": {
-				"path": "../fabric-network/test-network/organizations/peerOrganizations/delivery.com/admin/msp/keystore/900283fb810f809610e8715b6807a0be6dce75718ea0637f4d55a894476730b5_sk"
+				"path": "../fabric-network/test-network/organizations/peerOrganizations/delivery.com/admin/msp/keystore/1167d0a8b509c7ac0a689c3b0bd7cacf6fdfeb0d9ee81511a15cc6bd5c6d9616_sk"
 			},
 			"peers": ["peer0.delivery.com","peer1.delivery.com"],
       "orderers": ["orderer3.delivery.com","orderer4.delivery.com"],
@@ -82,7 +82,7 @@
     "RestaurantMSP": {
 			"mspid": "RestaurantMSP",
 			"adminPrivateKey": {
-				"path": "../fabric-network/test-network/organizations/peerOrganizations/restaurant.com/admin/msp/keystore/26fbf0b4b54f273a00b083c82e2820dbfc4ee69b7471ec747112ac2be64da19f_sk"
+				"path": "../fabric-network/test-network/organizations/peerOrganizations/restaurant.com/admin/msp/keystore/f2f48cde3690802fedbcf31d087c1887a171fea6df759ee0d3ee68a7b74e8db8_sk"
 			},
 			"peers": ["peer0.restaurant.com","peer1.restaurant.com"],
       "orderers": ["orderer5.restaurant.com"],
