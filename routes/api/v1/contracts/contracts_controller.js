@@ -413,8 +413,6 @@ exports.signContracts = async (req, res) => {
     const { _id, email, org } = req.decoded;
     const { id } = req.params;
     const { receiver, ...body } = req.body;
-    console.log(body);
-    console.log(id);
 
     const session = await dbModels.Contract.startSession();
 
@@ -447,19 +445,15 @@ exports.signContracts = async (req, res) => {
         }
 
         const userPrivateKey = userIdentity.credentials.privateKey;
-        console.log(userPrivateKey);
         const sig = new KJUR.crypto.Signature({ alg: "SHA256withECDSA" });
         sig.init(userPrivateKey, "");
         sig.updateHex(foundContract.pdfHash);
         const sigValueHex = sig.sign();
         const sigValueBase64 = Buffer.from(sigValueHex, "hex").toString("base64");
-        console.log("Signature: " + sigValueBase64);
 
         body[receiver === "a" ? "signA" : "signB"] = sigValueBase64;
 
         const updatedContract = await dbModels.Contract.findByIdAndUpdate(id, body, { new: true });
-        console.log(receiver);
-        console.log(updatedContract);
 
         if (!updatedContract) {
             await session.abortTransaction();
@@ -509,7 +503,6 @@ exports.signContracts = async (req, res) => {
             );
             const resultString = resultBuffer.toString("utf8");
             const resultJson = JSON.parse(resultString);
-            console.log(resultJson);
         } catch (bcError) {
             console.error("Blockchain transaction failed:", bcError);
             return res.status(500).json({
@@ -555,7 +548,6 @@ exports.verifyContracts = async (req, res) => {
     if (!file) {
         return res.status(400).json({ message: "No file uploaded!" });
     }
-    console.log(id);
 
     const session = await dbModels.Contract.startSession(); // MongoDB 세션 시작
 
@@ -572,9 +564,6 @@ exports.verifyContracts = async (req, res) => {
 
         // 계약이 존재하는지 확인 및 수신자가 맞는지 확인
         const foundContract = await dbModels.Contract.findOne({ _id: id, [receiverField]: _id }).lean();
-        console.log(receiverField);
-        console.log(_id);
-        console.log(foundContract);
 
         if (!foundContract) {
             await unlink(file.path); // 파일 삭제
@@ -584,7 +573,6 @@ exports.verifyContracts = async (req, res) => {
         // 업로드된 파일의 해시 생성
         const fileData = await fsPromises.readFile(file.path);
         const fileHash = crypto.createHash("sha256").update(fileData).digest("hex");
-        console.log("File Hash:", fileHash);
 
         // 파일 해시가 계약서의 해시와 일치하는지 확인
         if (foundContract.pdfHash !== fileHash) {
@@ -701,7 +689,6 @@ exports.updateOrder = async (req, res) => {
     const dbModels = global.DB_MODELS;
     const { _id, email, org } = req.decoded;
     const { id } = req.params;
-    console.log(id);
 
     const session = await dbModels.Order.startSession();
 
@@ -767,7 +754,6 @@ exports.updateOrder = async (req, res) => {
             );
             const resultString = resultBuffer.toString("utf8");
             const resultJson = JSON.parse(resultString);
-            console.log(resultJson);
         } catch (bcError) {
             console.error("Blockchain transaction failed:", bcError);
             return res.status(500).json({
@@ -806,7 +792,7 @@ exports.deleteContract = async (req, res) => {
     const dbModels = global.DB_MODELS;
     const { _id, email, org } = req.decoded;
     const { id } = req.params;
-    console.log(id);
+
     const session = await dbModels.Order.startSession();
 
     try {
@@ -860,7 +846,6 @@ exports.deleteContract = async (req, res) => {
             );
             const resultString = resultBuffer.toString("utf8");
             const resultJson = JSON.parse(resultString);
-            console.log(resultJson);
         } catch (bcError) {
             console.error("Blockchain transaction failed:", bcError);
             return res.status(500).json({
