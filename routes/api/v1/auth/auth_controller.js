@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const { MongoWallet } = require("../../../../utils/mongo-wallet");
-const { Wallet, Gateway } = require("fabric-network");
+const { Wallet } = require("fabric-network");
 const { buildCAClient, enrollAdminMongo, buildCCP } = require("../../../../utils/ca-utils");
 const FabricCAServices = require("fabric-ca-client");
 
